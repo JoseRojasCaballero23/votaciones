@@ -1,0 +1,59 @@
+  <!DOCTYPE html>
+  <html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Sistema de Votación Escolar</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>🗳️ Sistema de Votación - Municipio Escolar</h1>
+    </header>
+
+    <!-- LOGIN -->
+    <section id="login-section" class="section transition fade-in">
+      <h2>Ingreso del Estudiante</h2>
+      <form id="login-form" onsubmit="login(event)">
+        <input type="text" id="apellido" placeholder="Apellidos" required>
+        <input type="text" id="nombre" placeholder="Nombres" required>
+        <input type="email" id="correo" placeholder="Correo electrónico" required>
+        <button type="submit">Ingresar</button>
+      </form>
+    </section>
+
+    <!-- VOTACIÓN -->
+    <section id="votacion-section" class="section transition fade-init hidden">
+      <h2>Elige tu Candidato</h2>
+      <form id="voto-form" onsubmit="enviarVoto(event)">
+        <div class="candidatos-container">
+          <label class="candidato-card">
+            <img src="https://cdn-icons-png.flaticon.com/512/194/194938.png" alt="María López">
+            <input type="radio" name="candidato" value="Candidato 1" required>
+            <p><strong>Candidato 1</strong><br>María López</p>
+          </label>
+
+          <label class="candidato-card">
+            <img src="https://cdn-icons-png.flaticon.com/512/194/194915.png" alt="Juan Pérez">
+            <input type="radio" name="candidato" value="Candidato 2">
+            <p><strong>Candidato 2</strong><br>Juan Pérez</p>
+          </label>
+
+          <label class="candidato-card">
+            <img src="https://cdn-icons-png.flaticon.com/512/194/194935.png" alt="Ana Torres">
+            <input type="radio" name="candidato" value="Candidato 3">
+            <p><strong>Candidato 3</strong><br>Ana Torres</p>
+          </label>
+        </div>
+        <button type="submit">Enviar voto</button>
+      </form>
+      <p id="mensaje-voto"></p>
+    </section>
+
+    <footer>
+      <p>© 2025 Municipio Escolar | Proyecto Educativo</p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+  </html>
