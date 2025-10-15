@@ -271,3 +271,4 @@ window.debugSupabase = function() {
         console.log('Conexión test:', result);
     });
 };
+
