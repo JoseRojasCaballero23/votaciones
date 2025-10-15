@@ -1,59 +1,86 @@
   <!DOCTYPE html>
-  <html lang="es">
-  <head>
+<html lang="es">
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Sistema de Votación Escolar</title>
     <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
+    <!-- Incluir Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
     <header>
-      <h1>🗳️ Sistema de Votación - Municipio Escolar</h1>
+        <h1>🗳️ Sistema de Votación - Municipio Escolar</h1>
+        <p>IE 4021 "Daniel Alcides Carrión"</p>
     </header>
 
     <!-- LOGIN -->
     <section id="login-section" class="section transition fade-in">
-      <h2>Ingreso del Estudiante</h2>
-      <form id="login-form" onsubmit="login(event)">
-        <input type="text" id="apellido" placeholder="Apellidos" required>
-        <input type="text" id="nombre" placeholder="Nombres" required>
-        <input type="email" id="correo" placeholder="Correo electrónico" required>
-        <button type="submit">Ingresar</button>
-      </form>
+        <h2>Ingreso del Estudiante</h2>
+        <p>Ingresa tu número de DNI para votar</p>
+        
+        <form id="login-form">
+            <input type="text" id="dni" placeholder="Número de DNI (8 dígitos)" 
+                   pattern="[0-9]{8}" maxlength="8" required>
+            <button type="submit" id="login-btn">
+                <span id="btn-text">Ingresar a Votar</span>
+                <span id="btn-loading" style="display: none;">Verificando...</span>
+            </button>
+        </form>
+        
+        <div id="mensaje-login" class="mensaje"></div>
+        
+        <div class="info-box">
+            <h4>📋 Instrucciones:</h4>
+            <ul>
+                <li>Ingresa tu DNI sin puntos ni espacios</li>
+                <li>Debes ser estudiante matriculado 2025</li>
+                <li>Solo puedes votar una vez</li>
+                <li>Tu voto es secreto y confidencial</li>
+            </ul>
+        </div>
     </section>
 
     <!-- VOTACIÓN -->
     <section id="votacion-section" class="section transition fade-init hidden">
-      <h2>Elige tu Candidato</h2>
-      <form id="voto-form" onsubmit="enviarVoto(event)">
-        <div class="candidatos-container">
-          <label class="candidato-card">
-            <img src="https://cdn-icons-png.flaticon.com/512/194/194938.png" alt="María López">
-            <input type="radio" name="candidato" value="Candidato 1" required>
-            <p><strong>Candidato 1</strong><br>María López</p>
-          </label>
-
-          <label class="candidato-card">
-            <img src="https://cdn-icons-png.flaticon.com/512/194/194915.png" alt="Juan Pérez">
-            <input type="radio" name="candidato" value="Candidato 2">
-            <p><strong>Candidato 2</strong><br>Juan Pérez</p>
-          </label>
-
-          <label class="candidato-card">
-            <img src="https://cdn-icons-png.flaticon.com/512/194/194935.png" alt="Ana Torres">
-            <input type="radio" name="candidato" value="Candidato 3">
-            <p><strong>Candidato 3</strong><br>Ana Torres</p>
-          </label>
+        <h2>Elige tu Candidato</h2>
+        <div class="student-info">
+            <p>Estudiante: <strong id="student-name"></strong></p>
+            <p>Grado y Sección: <strong id="student-grade"></strong></p>
         </div>
-        <button type="submit">Enviar voto</button>
-      </form>
-      <p id="mensaje-voto"></p>
+        
+        <form id="voto-form">
+            <div class="candidatos-container" id="candidatos-container">
+                <!-- Los candidatos se cargarán dinámicamente -->
+                <div class="loading">Cargando candidatos...</div>
+            </div>
+            
+            <button type="submit" id="voto-btn">
+                <span id="voto-btn-text">✅ Enviar mi voto</span>
+                <span id="voto-btn-loading" style="display: none;">Registrando voto...</span>
+            </button>
+        </form>
+        
+        <div id="mensaje-voto" class="mensaje"></div>
+        
+        <button onclick="volverALogin()" class="btn-secondary">← Volver</button>
+    </section>
+
+    <!-- CONFIRMACIÓN -->
+    <section id="confirmacion-section" class="section transition fade-init hidden">
+        <h2>✅ Voto Registrado</h2>
+        <div class="success-animation">
+            <div class="checkmark">✓</div>
+        </div>
+        <p>¡Tu voto ha sido registrado exitosamente!</p>
+        <p><strong>Gracias por participar en la democracia escolar</strong></p>
+        <button onclick="volverALogin()" class="btn-secondary">Cerrar</button>
     </section>
 
     <footer>
-      <p>© 2025 Municipio Escolar | Proyecto Educativo</p>
+        <p>© 2025 IE 4021 "Daniel Alcides Carrión" | Sistema de Votación Digital</p>
     </footer>
 
     <script src="script.js"></script>
-  </body>
-  </html>
+</body>
+</html>
