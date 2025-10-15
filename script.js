@@ -1,6 +1,6 @@
-// Configuración de Supabase - REEMPLAZA CON TUS DATOS REALES
-const SUPABASE_URL = 'https://hgafvptrqxjqhjqnoezo.supabase.co';  // ← Tu URL aquí
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnYWZ2cHRycXhqcWhqcW5vZXpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NjQ5NzQsImV4cCI6MjA3NjA0MDk3NH0.GjMxKNHJfg__fdRRm3QG30C5Sr89FeT1Aq-05ZRGHYQ';  // ← Tu Anon Key aquí
+// Configuración de Supabase - USA TUS CREDENCIALES
+const SUPABASE_URL = 'https://hgafvptrqxjqhjqnoezo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnYWZ2cHRycXhqcWhqcW5vZXpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NjQ5NzQsImV4cCI6MjA3NjA0MDk3NH0.GjMxKNHJfg__fdRRm3QG30C5Sr89FeT1Aq-05ZRGHYQ';
 
 // Inicializar Supabase
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -8,42 +8,32 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Variables globales
 let estudianteActual = null;
 let candidatos = [];
-const TRANSITION_MS = 600;
 
 // Cuando la página carga
 document.addEventListener('DOMContentLoaded', function() {
-    // Configurar eventos de formularios
+    console.log('Sistema de votación iniciado');
+    
+    // Mostrar sección de login
+    mostrarSeccion('login-section');
+    
+    // Configurar eventos
     document.getElementById('login-form').addEventListener('submit', login);
     document.getElementById('voto-form').addEventListener('submit', enviarVoto);
     
-    // Cargar candidatos al iniciar
+    // Cargar candidatos
     cargarCandidatos();
 });
 
-// Función para mostrar/ocultar secciones con animación
+// Función para mostrar secciones
 function mostrarSeccion(idSeccion) {
     // Ocultar todas las secciones
     document.querySelectorAll('.section').forEach(seccion => {
-        if (!seccion.classList.contains('hidden')) {
-            seccion.classList.add('fade-out');
-            setTimeout(() => {
-                seccion.classList.add('hidden');
-                seccion.classList.remove('fade-out', 'fade-in');
-            }, 600);
-        }
+        seccion.classList.remove('active');
     });
     
     // Mostrar la sección deseada
-    setTimeout(() => {
-        const seccion = document.getElementById(idSeccion);
-        seccion.classList.remove('hidden');
-        seccion.classList.add('fade-init');
-        
-        setTimeout(() => {
-            seccion.classList.remove('fade-init');
-            seccion.classList.add('fade-in');
-        }, 50);
-    }, 650);
+    const seccion = document.getElementById(idSeccion);
+    seccion.classList.add('active');
 }
 
 // Función para mostrar mensajes
@@ -52,6 +42,7 @@ function mostrarMensaje(elementId, mensaje, tipo = '') {
     elemento.textContent = mensaje;
     elemento.className = `mensaje ${tipo}`;
     
+    // Auto-ocultar después de 5 segundos
     setTimeout(() => {
         elemento.style.display = 'none';
     }, 5000);
@@ -68,7 +59,7 @@ async function login(event) {
     
     // Validar DNI
     if (!/^\d{8}$/.test(dni)) {
-        mostrarMensaje('mensaje-login', 'Por favor, ingresa un DNI válido de 8 dígitos', 'error');
+        mostrarMensaje('mensaje-login', '❌ Por favor, ingresa un DNI válido de 8 dígitos', 'error');
         return;
     }
     
@@ -78,6 +69,8 @@ async function login(event) {
     loginBtn.disabled = true;
     
     try {
+        console.log('Buscando estudiante con DNI:', dni);
+        
         // Buscar estudiante en Supabase
         const { data: estudiante, error } = await supabase
             .from('estudiantes')
@@ -86,17 +79,21 @@ async function login(event) {
             .single();
         
         if (error) {
+            console.error('Error Supabase:', error);
+            
             if (error.code === 'PGRST116') {
-                mostrarMensaje('mensaje-login', 'DNI no encontrado. Verifica que seas estudiante matriculado 2025.', 'error');
+                mostrarMensaje('mensaje-login', '❌ DNI no encontrado. Verifica que seas estudiante matriculado 2025.', 'error');
             } else {
                 throw error;
             }
             return;
         }
         
+        console.log('Estudiante encontrado:', estudiante);
+        
         // Verificar si ya votó
         if (estudiante.votado) {
-            mostrarMensaje('mensaje-login', 'Ya has ejercido tu derecho al voto. Solo se permite un voto por estudiante.', 'error');
+            mostrarMensaje('mensaje-login', '❌ Ya has ejercido tu derecho al voto. Solo se permite un voto por estudiante.', 'error');
             return;
         }
         
@@ -109,10 +106,11 @@ async function login(event) {
         
         // Ir a la sección de votación
         mostrarSeccion('votacion-section');
+        mostrarMensaje('mensaje-voto', '', ''); // Limpiar mensajes anteriores
         
     } catch (error) {
-        console.error('Error:', error);
-        mostrarMensaje('mensaje-login', 'Error de conexión. Por favor, intenta nuevamente.', 'error');
+        console.error('Error en login:', error);
+        mostrarMensaje('mensaje-login', '❌ Error de conexión. Por favor, intenta nuevamente.', 'error');
     } finally {
         // Restaurar botón
         btnText.style.display = 'inline';
@@ -124,21 +122,27 @@ async function login(event) {
 // Cargar candidatos desde Supabase
 async function cargarCandidatos() {
     try {
+        console.log('Cargando candidatos...');
+        
         const { data, error } = await supabase
             .from('candidatos')
             .select('*')
             .eq('activo', true)
             .order('id');
         
-        if (error) throw error;
+        if (error) {
+            console.error('Error cargando candidatos:', error);
+            throw error;
+        }
         
         candidatos = data;
+        console.log('Candidatos cargados:', candidatos);
         mostrarCandidatos();
         
     } catch (error) {
         console.error('Error cargando candidatos:', error);
         document.getElementById('candidatos-container').innerHTML = 
-            '<div class="error-message">Error cargando candidatos</div>';
+            '<div class="mensaje error">Error cargando candidatos. Recarga la página.</div>';
     }
 }
 
@@ -168,6 +172,7 @@ function mostrarCandidatos() {
                 c.classList.remove('selected');
             });
             this.classList.add('selected');
+            this.querySelector('input').checked = true;
         });
     });
 }
@@ -183,12 +188,12 @@ async function enviarVoto(event) {
     const btnLoading = document.getElementById('voto-btn-loading');
     
     if (!candidatoId) {
-        mostrarMensaje('mensaje-voto', 'Por favor, selecciona un candidato', 'error');
+        mostrarMensaje('mensaje-voto', '❌ Por favor, selecciona un candidato', 'error');
         return;
     }
     
     if (!estudianteActual) {
-        mostrarMensaje('mensaje-voto', 'Error: sesión inválida', 'error');
+        mostrarMensaje('mensaje-voto', '❌ Error: sesión inválida', 'error');
         return;
     }
     
@@ -198,6 +203,8 @@ async function enviarVoto(event) {
     votoBtn.disabled = true;
     
     try {
+        console.log('Registrando voto para:', estudianteActual.dni, 'candidato:', candidatoId);
+        
         // Registrar voto en Supabase
         const { data: votoData, error: votoError } = await supabase
             .from('votos')
@@ -208,7 +215,10 @@ async function enviarVoto(event) {
                 }
             ]);
         
-        if (votoError) throw votoError;
+        if (votoError) {
+            console.error('Error registrando voto:', votoError);
+            throw votoError;
+        }
         
         // Marcar estudiante como que ya votó
         const { error: updateError } = await supabase
@@ -216,14 +226,19 @@ async function enviarVoto(event) {
             .update({ votado: true })
             .eq('dni', estudianteActual.dni);
         
-        if (updateError) throw updateError;
+        if (updateError) {
+            console.error('Error actualizando estudiante:', updateError);
+            throw updateError;
+        }
+        
+        console.log('Voto registrado exitosamente');
         
         // Mostrar confirmación
         mostrarSeccion('confirmacion-section');
         
     } catch (error) {
         console.error('Error registrando voto:', error);
-        mostrarMensaje('mensaje-voto', 'Error al registrar el voto. Intenta nuevamente.', 'error');
+        mostrarMensaje('mensaje-voto', '❌ Error al registrar el voto. Intenta nuevamente.', 'error');
     } finally {
         // Restaurar botón
         btnText.style.display = 'inline';
@@ -243,3 +258,16 @@ function volverALogin() {
     });
     mostrarSeccion('login-section');
 }
+
+// Función global para debugging
+window.debugSupabase = function() {
+    console.log('=== DEBUG SUPABASE ===');
+    console.log('URL:', SUPABASE_URL);
+    console.log('Estudiante actual:', estudianteActual);
+    console.log('Candidatos:', candidatos);
+    
+    // Probar conexión
+    supabase.from('estudiantes').select('count').then(result => {
+        console.log('Conexión test:', result);
+    });
+};
